@@ -48,6 +48,8 @@ import sc.android.shoppinglistapp_room.model.ShoppingItem
 import sc.android.shoppinglistapp_room.navigation.Screens
 import sc.android.shoppinglistapp_room.ui.theme.ShoppingListApp_RoomTheme
 import sc.android.shoppinglistapp_room.ui.theme.ThemeMode
+import sc.android.shoppinglistapp_room.util.LocationUtil
+import sc.android.shoppinglistapp_room.viewmodel.LocationViewModel
 import sc.android.wishlistapp.ui.theme.GreenPrimaryContainerDark
 
 @Composable
@@ -55,7 +57,9 @@ fun HomeScreen(
     themeMode: ThemeMode,
     isDark : Boolean,
     onThemeChange : (ThemeMode) -> Unit,
-    navController: NavHostController
+    navController: NavHostController,
+    locationUtil: LocationUtil,
+    locationViewModel: LocationViewModel
 ) {
     val snackBarHostState = remember{ SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -67,7 +71,10 @@ fun HomeScreen(
                 AppBar(
                     title = "Shopping List",
                     themeMode = themeMode,
-                    onThemeChange = onThemeChange
+                    onThemeChange = onThemeChange,
+                    locationUtil = locationUtil,
+                    locationViewModel = locationViewModel,
+                    navController = navController
                 )
             },
             floatingActionButton = {
@@ -102,11 +109,11 @@ fun HomeScreen(
                         ShoppingItem(
                             0L,
                             "Eggs",
-                            "30",
+                            0,
                             unit = "pieces"
                         ),
                         isDark = isDark,
-                        {}
+                        {navController.navigate(Screens.AddEditScreen.route)}
                     )
                 }
 
@@ -220,7 +227,7 @@ fun ShoppingItemView (
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = item.quantity
+                        text = item.quantity.toString()
                     )
                     Text(
                         text = item.unit,

@@ -11,7 +11,7 @@ data class ShoppingItem(
     @ColumnInfo("item_name")
     val name:String="",
     @ColumnInfo("item_quantity")
-    val quantity:String="",
+    val quantity:Int=0,
     @ColumnInfo("item_unit")
     val unit: String=""
 )

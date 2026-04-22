@@ -26,6 +26,8 @@ import androidx.navigation.NavHostController
 import sc.android.shoppinglistapp_room.R
 import sc.android.shoppinglistapp_room.ui.theme.ShoppingListApp_RoomTheme
 import sc.android.shoppinglistapp_room.ui.theme.ThemeMode
+import sc.android.shoppinglistapp_room.util.LocationUtil
+import sc.android.shoppinglistapp_room.viewmodel.LocationViewModel
 
 @Composable
 fun AddEditScreen(
@@ -37,7 +39,9 @@ fun AddEditScreen(
     onValueChange : () -> Unit,
     onDecrease : () -> Unit,
     onIncrease : () -> Unit,
-    onUnitSelect : () -> Unit
+    onUnitSelect : () -> Unit,
+    locationUtil: LocationUtil,
+    locationViewModel: LocationViewModel
 ) {
 
     val snackBarHostState = remember { SnackbarHostState() }
@@ -58,7 +62,11 @@ fun AddEditScreen(
                         stringResource(id = R.string.add_item)
                     },
                     themeMode = themeMode,
-                    onThemeChange = onThemeChange
+                    onThemeChange = onThemeChange,
+                    locationUtil = locationUtil,
+                    locationViewModel = locationViewModel,
+                    navController = navController,
+                    onBackNavClicked = {navController.navigateUp()}
                 )
             },
             snackbarHost = { SwipeableSnackBar(snackBarHostState) }
@@ -217,7 +225,21 @@ fun AddEditScreen(
                                     }
                                 )
                                 DropdownMenuItem(
+                                    text = { Text("gms") },
+                                    onClick = {
+                                        onUnitSelect()
+                                        menuExpanded = false
+                                    }
+                                )
+                                DropdownMenuItem(
                                     text = { Text("lts") },
+                                    onClick = {
+                                        onUnitSelect()
+                                        menuExpanded = false
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("mls") },
                                     onClick = {
                                         onUnitSelect()
                                         menuExpanded = false
