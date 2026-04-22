@@ -29,7 +29,7 @@ val LightOnSurface = Color(0xFF1C1C1C)
 // --------------------
 val GreenPrimaryDark = Color(0xFF4CAF50)
 val GreenOnPrimaryDark = Color(0xFFFFFFFF)
-val GreenPrimaryContainerDark = Color(0xFF2E7D32)
+val GreenPrimaryContainerDark = Color(0xFF146B19)
 val GreenOnPrimaryContainerDark = Color(0xFFC8E6C9)
 
 val YellowSecondaryDark = Color(0xFFFFD54F)

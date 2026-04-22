@@ -102,7 +102,8 @@ fun HomeScreen(
                         ShoppingItem(
                             0L,
                             "Eggs",
-                            "30"
+                            "30",
+                            unit = "pieces"
                         ),
                         isDark = isDark,
                         {}
@@ -144,21 +145,8 @@ fun ShoppingItemView (
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 18.dp)
-            .clickable{ onClick() }
-            .padding(top = 12.dp)
-            .drawWithContent {
-                drawContent()
-                if (checked) {
-                    val strokeWidth = 2.dp.toPx()
-                    drawLine(
-                        color = strikeColor,
-                        start = Offset(0f, size.height / 2),
-                        end = Offset(size.width, size.height / 2),
-                        strokeWidth = strokeWidth,
-                        cap = StrokeCap.Round
-                    )
-                }
-            },
+            .clickable { onClick() }
+            .padding(top = 12.dp),
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.elevatedCardElevation(4.dp),
         colors = CardDefaults.cardColors(
@@ -192,29 +180,54 @@ fun ShoppingItemView (
             )
 
             Row(
-                modifier = Modifier.weight(1f),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(
-                    "Name:",
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = item.name
-                )
-            }
+                modifier = Modifier
+                    .drawWithContent {
+                        drawContent()
+                        if (checked) {
+                            val strokeWidth = 2.dp.toPx()
+                            drawLine(
+                                color = strikeColor,
+                                start = Offset(0f, size.height / 2),
+                                end = Offset(size.width, size.height / 2),
+                                strokeWidth = strokeWidth,
+                                cap = StrokeCap.Round
+                            )
+                        }
+                    },
+                verticalAlignment = Alignment.CenterVertically
+            ){
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        "Name:",
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = item.name
+                    )
+                }
 
-            Row(
-                modifier = Modifier.weight(1f),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(
-                    "Quantity:",
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = item.quantity
-                )
+                Row(
+                    modifier = Modifier.weight(1f),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "Quantity:",
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = item.quantity
+                    )
+                    Text(
+                        text = item.unit,
+                        style=MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
 
         }

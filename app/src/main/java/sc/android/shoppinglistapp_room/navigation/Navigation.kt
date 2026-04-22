@@ -12,8 +12,11 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
+import sc.android.shoppinglistapp_room.model.ShoppingItem
 import sc.android.shoppinglistapp_room.ui.theme.ThemeMode
+import sc.android.shoppinglistapp_room.view.AddEditScreen
 import sc.android.shoppinglistapp_room.view.HomeScreen
+import sc.android.shoppinglistapp_room.view.ShoppingItemView
 
 @Composable
 fun Navigation (
@@ -26,7 +29,7 @@ fun Navigation (
 ) {
     AnimatedNavHost(
         navController = navController,
-        startDestination = Screens.HomeScreen.route
+        startDestination = Screens.AddEditScreen.route
     ){
 
         //home screen
@@ -46,6 +49,25 @@ fun Navigation (
         }
 
         //add-edit screen
+        composable(
+            route= Screens.AddEditScreen.route,
+            enterTransition = { fadeIn( tween(300) ) },
+            popEnterTransition = { fadeIn( tween(300) ) },
+            exitTransition = { fadeOut( tween(300) ) },
+            popExitTransition = { fadeOut( tween(300) ) }
+        ){
+            AddEditScreen(
+                id=0L,
+                isDark=isDark,
+                themeMode = themeMode,
+                onThemeChange = onThemeChange,
+                navController = navController,
+                onValueChange={},
+                onDecrease = {},
+                onIncrease = {},
+                onUnitSelect = {}
+            )
+        }
 
         //location selection dialog
     }
