@@ -14,18 +14,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.maps.android.compose.*
+import sc.android.shoppinglistapp_room.R
 import sc.android.shoppinglistapp_room.model.LocationData
 import sc.android.shoppinglistapp_room.viewmodel.LocationViewModel
 
 @Composable
 fun LocationSelector(
+    isDark: Boolean,
     location: LocationData,
     onLocationSelected : (LocationData) -> Unit,
     navController: NavHostController,
@@ -47,7 +51,7 @@ fun LocationSelector(
             pressedBackOnce = true
             Toast.makeText(
                 context,
-                "Please select a location to continue!",
+                "Press back again to exit or select a location",
                 Toast.LENGTH_LONG
             ).show()
         }
@@ -65,13 +69,23 @@ fun LocationSelector(
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(
             userLocation.value,
-            17f
+            16.9f
         )
     }
 
     val mapProperties by remember {
         (mutableStateOf(
-            MapProperties(isMyLocationEnabled = true)   //for the current location blue dot
+            MapProperties(
+                isBuildingEnabled = true,
+                isTrafficEnabled = true,
+                isMyLocationEnabled = true,     //for the current location blue dot
+                mapStyleOptions = if (isDark) {
+                    MapStyleOptions.loadRawResourceStyle(
+                        context,
+                        R.raw.map_style_dark    //dark themed map
+                    )
+                } else null     //normal light-themed map
+            )
         ))
     }
 
@@ -89,6 +103,7 @@ fun LocationSelector(
 
         Box(
             modifier = Modifier
+                .weight(0.2f)
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp),
             contentAlignment = Alignment.Center
@@ -105,7 +120,7 @@ fun LocationSelector(
 
         Card(
             modifier = Modifier
-                .height(650.dp)
+                .weight(1f)
                 .padding(8.dp)
                 .padding(horizontal = 16.dp),
             shape = RoundedCornerShape(16.dp),
@@ -127,7 +142,8 @@ fun LocationSelector(
                 Marker(
                     state = MarkerState(position = userLocation.value),
                     draggable = true,
-                    flat = true
+                    flat = true,
+                    anchor = Offset(0.5f, 1.1f)
                 )
             }
         }
@@ -138,6 +154,8 @@ fun LocationSelector(
 
         Button(
             modifier = Modifier
+                .wrapContentHeight()
+                .padding(bottom = 32.dp)
                 .align(Alignment.CenterHorizontally),
             onClick = {
                 newLocation = LocationData(

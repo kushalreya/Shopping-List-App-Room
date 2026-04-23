@@ -74,6 +74,7 @@ fun Navigation (
 
             if (startLocation != null){
                 LocationSelector(
+                    isDark = isDark,
                     location = startLocation,
                     onLocationSelected = {
                             locationData ->
