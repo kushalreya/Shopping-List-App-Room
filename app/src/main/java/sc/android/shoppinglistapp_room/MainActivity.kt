@@ -22,6 +22,7 @@ import sc.android.shoppinglistapp_room.ui.theme.ShoppingListApp_RoomTheme
 import sc.android.shoppinglistapp_room.ui.theme.ThemeMode
 import sc.android.shoppinglistapp_room.util.LocationUtil
 import sc.android.shoppinglistapp_room.viewmodel.LocationViewModel
+import sc.android.shoppinglistapp_room.viewmodel.ShoppingViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,6 +46,7 @@ class MainActivity : ComponentActivity() {
             val context = LocalContext.current
             val locationViewModel : LocationViewModel = viewModel()
             val locationUtil = LocationUtil(context)
+            val shoppingViewModel: ShoppingViewModel=viewModel()
 
             ShoppingListApp_RoomTheme (darkTheme = isDark) {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -61,7 +63,8 @@ class MainActivity : ComponentActivity() {
                             navController = navController,
                             context = context,
                             locationUtil=locationUtil,
-                            locationViewModel=locationViewModel
+                            locationViewModel=locationViewModel,
+                            shoppingViewModel = shoppingViewModel
                         )
                     }
                 }

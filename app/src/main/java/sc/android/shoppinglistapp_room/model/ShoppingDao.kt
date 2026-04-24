@@ -8,15 +8,15 @@ interface ShoppingDao {
 
     // adding item to the table
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun addItem(shoppingEntity: ShoppingItem): Long  // returns inserted rowId
+    suspend fun addItem(shoppingItem: ShoppingItem): Long  // returns inserted rowId
 
     // update item
     @Update
-    suspend fun updateItem(shoppingEntity: ShoppingItem): Int // rows affected
+    suspend fun updateItem(shoppingItem: ShoppingItem): Int // rows affected
 
     // delete item
     @Delete
-    suspend fun deleteItem(shoppingEntity: ShoppingItem): Int // rows deleted
+    suspend fun deleteItem(shoppingItem: ShoppingItem): Int // rows deleted
 
     // load all items
     @Query("SELECT * FROM `shopping_table`")

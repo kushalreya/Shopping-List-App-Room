@@ -13,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -28,7 +29,9 @@ import sc.android.shoppinglistapp_room.ui.theme.ShoppingListApp_RoomTheme
 import sc.android.shoppinglistapp_room.ui.theme.ThemeMode
 import sc.android.shoppinglistapp_room.util.LocationUtil
 import sc.android.shoppinglistapp_room.viewmodel.LocationViewModel
+import sc.android.shoppinglistapp_room.viewmodel.ShoppingViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEditScreen(
     id: Long,
@@ -41,7 +44,8 @@ fun AddEditScreen(
     onIncrease : () -> Unit,
     onUnitSelect : () -> Unit,
     locationUtil: LocationUtil,
-    locationViewModel: LocationViewModel
+    locationViewModel: LocationViewModel,
+    shoppingViewModel: ShoppingViewModel
 ) {
 
     val snackBarHostState = remember { SnackbarHostState() }
@@ -186,80 +190,69 @@ fun AddEditScreen(
                                 textAlign = TextAlign.Center
                             )
 
-                            //dropdown button
-                            Button(
-                                onClick = { menuExpanded = true },
-                                modifier = Modifier.width(120.dp).height(50.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                                )
-                            ) {
-                                Text(
-                                    //TODO add unit if selected
-                                    text = "select",
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onPrimary
-                                )
-
-                                Icon(
-                                    imageVector = if (menuExpanded) Icons.Default.ArrowDropUp
-                                    else Icons.Default.ArrowDropDown,
-                                    contentDescription = "unit",
-                                    Modifier.size(35.dp)
-                                )
-                            }
+                            val units = listOf("kgs", "gms", "lts", "mls", "pieces", "packets")
 
                             //dropdown menu
-                            DropdownMenu(
+                            ExposedDropdownMenuBox(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(32.dp)),
                                 expanded = menuExpanded,
-                                onDismissRequest = { menuExpanded = false },
-                                shape = RoundedCornerShape(12.dp),
-                                containerColor = MaterialTheme.colorScheme.primaryContainer
+                                onExpandedChange = { menuExpanded = !menuExpanded }
                             ) {
-                                DropdownMenuItem(
-                                    text = { Text("kgs") },
-                                    onClick = {
-                                        onUnitSelect()
-                                        menuExpanded = false
+                                TextField(
+                                    value = "select",
+                                    onValueChange = {},
+                                    readOnly = true,
+                                    modifier = Modifier
+                                        .menuAnchor()
+                                        .width(140.dp),
+                                    textStyle = MaterialTheme.typography.titleMedium.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                                    ),
+                                    colors = ExposedDropdownMenuDefaults.textFieldColors(
+                                        focusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                        unfocusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                        focusedTextColor = MaterialTheme.colorScheme.onPrimary,
+                                        unfocusedTextColor = MaterialTheme.colorScheme.onPrimary,
+                                        focusedIndicatorColor = Color.Transparent,
+                                        unfocusedIndicatorColor = Color.Transparent
+                                    ),
+                                    trailingIcon = {
+                                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = menuExpanded)
                                     }
                                 )
-                                DropdownMenuItem(
-                                    text = { Text("gms") },
-                                    onClick = {
-                                        onUnitSelect()
-                                        menuExpanded = false
+
+                                ExposedDropdownMenu(
+                                    expanded = menuExpanded,
+                                    onDismissRequest = { menuExpanded = false },
+                                    shape = RoundedCornerShape(16.dp),
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                                ) {
+                                    units.forEach { unit ->
+                                        DropdownMenuItem(
+                                            text = {
+                                                Text(
+                                                    text = unit,
+                                                    style = MaterialTheme.typography.bodyLarge,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            },
+
+                                            onClick = {
+                                                //TODO set unit
+                                            },
+                                            colors = MenuDefaults.itemColors(
+                                                textColor = if (unit == shoppingViewModel.shoppingItemUnit)
+                                                    MaterialTheme.colorScheme.primary
+                                                else
+                                                    MaterialTheme.colorScheme.onSurface
+                                            )
+                                        )
                                     }
-                                )
-                                DropdownMenuItem(
-                                    text = { Text("lts") },
-                                    onClick = {
-                                        onUnitSelect()
-                                        menuExpanded = false
-                                    }
-                                )
-                                DropdownMenuItem(
-                                    text = { Text("mls") },
-                                    onClick = {
-                                        onUnitSelect()
-                                        menuExpanded = false
-                                    }
-                                )
-                                DropdownMenuItem(
-                                    text = { Text("pieces") },
-                                    onClick = {
-                                        onUnitSelect()
-                                        menuExpanded = false
-                                    }
-                                )
-                                DropdownMenuItem(
-                                    text = { Text("packets") },
-                                    onClick = {
-                                        onUnitSelect()
-                                        menuExpanded = false
-                                    }
-                                )
+                                }
                             }
+
                         }
                     }
                 }

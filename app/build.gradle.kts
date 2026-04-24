@@ -56,6 +56,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.appcompat)
     val nav_version = "2.7.5"
     val room_version = "2.7.0"
 
