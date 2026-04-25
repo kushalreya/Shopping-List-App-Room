@@ -380,11 +380,11 @@ fun AddEditScreen(
                                     )
                                 )
 
-                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
 
                                 scope.launch {
                                     snackBarHostState.showSnackbar(
-                                        message = "${shoppingViewModel.shoppingItemName} has been added to the list",
+                                        message = "\"${shoppingViewModel.shoppingItemName}\" has been added to the list",
                                         duration = SnackbarDuration.Short
                                     )
                                     navController.navigateUp()

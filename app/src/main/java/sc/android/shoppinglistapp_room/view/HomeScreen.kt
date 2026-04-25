@@ -54,6 +54,8 @@ fun HomeScreen(
     var showDialog by remember { mutableStateOf(false) }
     var pendingItem by remember { mutableStateOf<ShoppingItem?>(null) }
 
+    var activeDismissState by remember { mutableStateOf<SwipeToDismissBoxState?>(null) }
+
     val haptic = LocalHapticFeedback.current
 
     ShoppingListApp_RoomTheme (darkTheme = isDark) {
@@ -132,6 +134,7 @@ fun HomeScreen(
                     }
                 }
             } else {
+
                 //shopping list
                 LazyColumn(
                     modifier = Modifier
@@ -144,19 +147,27 @@ fun HomeScreen(
                     ){
                             item ->
 
-                        val dismissState = rememberSwipeToDismissBoxState (
-                            confirmValueChange = {
-                                    value ->
-                                if (value == SwipeToDismissBoxValue.EndToStart){
+                        val currentDismissState = remember { mutableStateOf<SwipeToDismissBoxState?>(null) }
+
+                        val dismissState = rememberSwipeToDismissBoxState(
+                            confirmValueChange = { value ->
+                                if (value == SwipeToDismissBoxValue.EndToStart) {
+
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+
                                     pendingItem = item
                                     showDialog = true
+
+                                    activeDismissState = currentDismissState.value
+
                                     false
-                                } else {
-                                    false
-                                }
+                                } else false
                             },
                             positionalThreshold = { 0.5f }
                         )
+
+                        // assign after creation
+                        currentDismissState.value = dismissState
 
                         SwipeToDismissBox(
                             state = dismissState,
@@ -202,74 +213,77 @@ fun HomeScreen(
                         var hapticTriggered by remember { mutableStateOf(false) }
 
                         LaunchedEffect(dismissState.progress) {
-                            if (dismissState.progress >= 0.5f && !hapticTriggered) {
+                            if (dismissState.progress >= 0.3f && !hapticTriggered) {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 hapticTriggered = true
                             }
 
-                            if (dismissState.progress < 0.5f) {
+                            if (dismissState.progress < 0.3f) {
                                 hapticTriggered = false
                             }
                         }
+                    }
+                }
 
-                        if (showDialog && pendingItem != null) {
-                            AlertDialog(
-                                onDismissRequest = {
+                if (showDialog && pendingItem != null) {
+                    AlertDialog(
+                        onDismissRequest = {
+                            showDialog = false
+                            pendingItem = null
+                        },
+                        title = {
+                            Text(
+                                "Delete Item",
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                        },
+                        text = {
+                            Text("Are you sure you want to delete \"${pendingItem?.name}\"?")
+                        },
+                        confirmButton = {
+                            Button(
+                                onClick = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    val deletedName = pendingItem?.name ?: ""
+                                    shoppingViewModel.deleteItem(pendingItem!!)
+                                    scope.launch {
+                                        snackBarHostState.showSnackbar("$deletedName deleted")
+                                    }
                                     showDialog = false
                                     pendingItem = null
                                 },
-                                title = {
-                                    Text(
-                                        "Delete Item",
-                                        style = MaterialTheme.typography.titleLarge
-                                    )
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.error,
+                                    contentColor = MaterialTheme.colorScheme.onError
+                                ),
+                                shape = RoundedCornerShape(24.dp)
+                            ) {
+                                Text("Delete", fontWeight = FontWeight.Bold)
+                            }
+                        },
+                        dismissButton = {
+                            OutlinedButton(
+                                onClick = {
+                                    showDialog = false
+                                    pendingItem = null
                                 },
-                                text = {
-                                    Text("Are you sure you want to delete \"${pendingItem?.name}\"?")
-                                },
-                                confirmButton = {
-                                    Button(
-                                        onClick = {
-                                            val deletedName = pendingItem?.name ?: ""
-                                            shoppingViewModel.deleteItem(pendingItem!!)
-                                            scope.launch {
-                                                snackBarHostState.showSnackbar("$deletedName deleted")
-                                            }
-                                            showDialog = false
-                                            pendingItem = null
-                                        },
-                                        colors = ButtonDefaults.buttonColors(
-                                            containerColor = MaterialTheme.colorScheme.error,
-                                            contentColor = MaterialTheme.colorScheme.onError
-                                        ),
-                                        shape = RoundedCornerShape(24.dp)
-                                    ) {
-                                        Text("Delete", fontWeight = FontWeight.Bold)
-                                    }
-                                },
-                                dismissButton = {
-                                    OutlinedButton(
-                                        onClick = {
-                                            showDialog = false
-                                            pendingItem = null
-                                        },
-                                        shape = RoundedCornerShape(24.dp)
-                                    ) {
-                                        Text(
-                                            "Cancel", fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                    }
-                                }
-                            )
-                        }
-
-                        LaunchedEffect(showDialog) {
-                            if (!showDialog && dismissState.currentValue != SwipeToDismissBoxValue.Settled) {
-                                dismissState.reset()
+                                shape = RoundedCornerShape(24.dp)
+                            ) {
+                                Text(
+                                    "Cancel", fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
                             }
                         }
+                    )
+                }
+
+                LaunchedEffect(showDialog) {
+                    if (!showDialog) {
+                        activeDismissState?.reset()
+                        activeDismissState = null
                     }
+
                 }
             }
         }
@@ -330,7 +344,7 @@ fun ShoppingItemView (
                     checked = it
 
                     haptic.performHapticFeedback(
-                        HapticFeedbackType.TextHandleMove
+                        HapticFeedbackType.ToggleOn
                     )
                 },
                 colors = CheckboxDefaults.colors(
@@ -385,6 +399,7 @@ fun ShoppingItemView (
                     )
                     Text(
                         text = item.unit,
+                        fontWeight = FontWeight.SemiBold,
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant                    )
                 }
