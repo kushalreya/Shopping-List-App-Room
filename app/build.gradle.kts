@@ -15,7 +15,7 @@ plugins {
 }
 
 android {
-    namespace = "sc.android.shoppinglistapp_room"
+    namespace = "sc.android.nearcart"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
