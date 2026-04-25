@@ -1,54 +1,19 @@
 package sc.android.shoppinglistapp_room.view
 
-import android.util.Log.i
-import androidx.appcompat.app.AlertDialog
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddShoppingCart
 import androidx.compose.material.icons.filled.DeleteSweep
-import androidx.compose.material.icons.filled.ShoppingCartCheckout
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Snackbar
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberSwipeToDismissBoxState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -79,12 +44,12 @@ fun HomeScreen(
     isDark : Boolean,
     onThemeChange : (ThemeMode) -> Unit,
     navController: NavHostController,
-    locationUtil: LocationUtil,
+    shoppingViewModel: ShoppingViewModel,
     locationViewModel: LocationViewModel,
-    shoppingViewModel: ShoppingViewModel
+    locationUtil: LocationUtil
 ) {
-    val snackBarHostState = remember{ SnackbarHostState() }
-    val scope = rememberCoroutineScope()
+
+    val snackBarHostState = remember { SnackbarHostState() }
 
     var showDialog by remember { mutableStateOf(false) }
     var pendingItem by remember { mutableStateOf<ShoppingItem?>(null) }
@@ -99,34 +64,37 @@ fun HomeScreen(
                     title = "Shopping List",
                     themeMode = themeMode,
                     onThemeChange = onThemeChange,
-                    locationUtil = locationUtil,
                     locationViewModel = locationViewModel,
+                    locationUtil = locationUtil,
                     navController = navController
                 )
             },
             floatingActionButton = {
                 FloatingActionButton(
-                    onClick = {
-                        navController.navigate(Screens.AddEditScreen.route+"/0L")
-                    },
-                    shape = CircleShape,
+                    onClick = { navController.navigate(Screens.AddEditScreen.route + "/0") },
                     modifier = Modifier
                         .padding(30.dp)
                         .size(70.dp)
-                        .border(1.5.dp, GreenPrimaryContainerDark, CircleShape),
+                        .border(
+                            width = 1.dp,
+                            color = GreenPrimaryContainerDark,
+                            CircleShape
+                        ),
+                    shape = CircleShape,
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onSurface
                 ) {
                     Icon(
-                        imageVector = Icons.Default.ShoppingCartCheckout,
-                        contentDescription = "shopping item add",
-                        modifier = Modifier.size(28.dp)
+                        imageVector = Icons.Default.AddShoppingCart,
+                        contentDescription = "add item",
+                        modifier = Modifier.size(35.dp)
                     )
                 }
             },
-            snackbarHost = {SwipeableSnackBar(snackBarHostState)}
+            snackbarHost = { SwipeableSnackBar(snackBarHostState) }
         ) {
-            val shoppingList = shoppingViewModel.getAllItems.collectAsState(initial = listOf())
+
+            val shoppingList = shoppingViewModel.getAllItems.collectAsState(initial = listOf()) //initially empty list
 
             val scope = rememberCoroutineScope()
 
@@ -144,8 +112,8 @@ fun HomeScreen(
 
                         Image(
                             painter = painterResource(id = R.drawable.empty_shoppinglist),
-                            contentDescription = "Empty wishlist",
-                            modifier = Modifier.size(470.dp)
+                            contentDescription = "Empty shopping cart",
+                            modifier = Modifier.size(450.dp)
                         )
 
                         Text(
@@ -163,18 +131,20 @@ fun HomeScreen(
                         )
                     }
                 }
-            }
-            else {
+            } else {
+                //shopping list
                 LazyColumn(
-                    modifier = Modifier.padding(it)
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(it)
                 ) {
                     items(
                         shoppingList.value,
-                        key={it.id}
+                        key = { it.id }
                     ){
-                        item->
+                            item ->
 
-                        val dismissState= rememberSwipeToDismissBoxState(
+                        val dismissState = rememberSwipeToDismissBoxState (
                             confirmValueChange = {
                                     value ->
                                 if (value == SwipeToDismissBoxValue.EndToStart){
@@ -185,7 +155,7 @@ fun HomeScreen(
                                     false
                                 }
                             },
-                            positionalThreshold = {0.5f}
+                            positionalThreshold = { 0.5f }
                         )
 
                         SwipeToDismissBox(
@@ -201,7 +171,9 @@ fun HomeScreen(
                                 Box(
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .clip(RoundedCornerShape(24.dp))
+                                        .padding(horizontal = 10.dp)
+                                        .padding(top = 10.dp)
+                                        .clip(RoundedCornerShape(16.dp))
                                         .background(bgColor),
                                     contentAlignment = Alignment.CenterEnd
                                 ) {
@@ -217,16 +189,16 @@ fun HomeScreen(
                             },
                             enableDismissFromEndToStart = true,
                             enableDismissFromStartToEnd = true
-                        ) {
-
+                        ){
                             ShoppingItemView(
-                                item=item,
-                                isDark=isDark,
+                                item = item,
+                                isDark = isDark,
                                 onClick = {
                                     navController.navigate(route = Screens.AddEditScreen.route+"/${item.id}")
                                 }
                             )
                         }
+
                         var hapticTriggered by remember { mutableStateOf(false) }
 
                         LaunchedEffect(dismissState.progress) {
@@ -239,6 +211,7 @@ fun HomeScreen(
                                 hapticTriggered = false
                             }
                         }
+
                         if (showDialog && pendingItem != null) {
                             AlertDialog(
                                 onDismissRequest = {
@@ -246,34 +219,46 @@ fun HomeScreen(
                                     pendingItem = null
                                 },
                                 title = {
-                                    Text("Delete Item")
+                                    Text(
+                                        "Delete Item",
+                                        style = MaterialTheme.typography.titleLarge
+                                    )
                                 },
                                 text = {
                                     Text("Are you sure you want to delete \"${pendingItem?.name}\"?")
                                 },
                                 confirmButton = {
-                                    TextButton(
+                                    Button(
                                         onClick = {
+                                            val deletedName = pendingItem?.name ?: ""
                                             shoppingViewModel.deleteItem(pendingItem!!)
                                             scope.launch {
-                                                snackBarHostState.showSnackbar("${pendingItem?.name} deleted")
+                                                snackBarHostState.showSnackbar("$deletedName deleted")
                                             }
                                             showDialog = false
                                             pendingItem = null
-                                        }
-
+                                        },
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.error,
+                                            contentColor = MaterialTheme.colorScheme.onError
+                                        ),
+                                        shape = RoundedCornerShape(24.dp)
                                     ) {
-                                        Text("Delete", color = MaterialTheme.colorScheme.error)
+                                        Text("Delete", fontWeight = FontWeight.Bold)
                                     }
                                 },
                                 dismissButton = {
-                                    TextButton(
+                                    OutlinedButton(
                                         onClick = {
                                             showDialog = false
                                             pendingItem = null
-                                        }
+                                        },
+                                        shape = RoundedCornerShape(24.dp)
                                     ) {
-                                        Text("Cancel")
+                                        Text(
+                                            "Cancel", fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
                                     }
                                 }
                             )
@@ -289,7 +274,6 @@ fun HomeScreen(
             }
         }
     }
-
 }
 
 @Composable
@@ -320,10 +304,10 @@ fun ShoppingItemView (
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 18.dp)
+            .padding(horizontal = 10.dp)
             .clickable { onClick() }
-            .padding(top = 12.dp),
-        shape = RoundedCornerShape(12.dp),
+            .padding(top = 10.dp),
+        shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.elevatedCardElevation(4.dp),
         colors = CardDefaults.cardColors(
             containerColor = containerColor,
@@ -354,6 +338,7 @@ fun ShoppingItemView (
                     checkmarkColor = MaterialTheme.colorScheme.background
                 )
             )
+
 
             Row(
                 modifier = Modifier
@@ -388,8 +373,8 @@ fun ShoppingItemView (
 
                 Row(
                     modifier = Modifier.weight(1f),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Text(
                         "Quantity:",
@@ -400,13 +385,10 @@ fun ShoppingItemView (
                     )
                     Text(
                         text = item.unit,
-                        style=MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant                    )
                 }
             }
-
         }
     }
-
 }

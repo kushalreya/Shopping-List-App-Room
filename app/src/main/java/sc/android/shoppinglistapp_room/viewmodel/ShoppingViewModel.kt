@@ -14,48 +14,84 @@ import sc.android.shoppinglistapp_room.model.ShoppingRepository
 
 class ShoppingViewModel(
     private val shoppingRepository: ShoppingRepository = Graph.shoppingRepository
-): ViewModel() {
-    var shoppingItemName by mutableStateOf("")
-    var shoppingItemQuantity by mutableStateOf(0)
-    var shoppingItemUnit by mutableStateOf("")
+) : ViewModel() {
 
-    //updating data in viewmodel from ui
+    var shoppingItemName by mutableStateOf("")  //item name
+    var shoppingItemQuantity by mutableStateOf(0)   //item quantity
+    var shoppingItemUnit by mutableStateOf("")  //item quantity  unit
 
-    fun updateShoppingItemName(newName: String){
-        shoppingItemName=newName
-    }
-
-    fun updateShoppingItemQuantity(newQuantity: Int){
-        shoppingItemQuantity=newQuantity
-    }
-
-    fun updateShoppingItemUnit(newUnit: String){
-        shoppingItemUnit=newUnit
-    }
-
-    //updating data in shopping repository
-
-    fun addItem(shoppingItem: ShoppingItem){
-        viewModelScope.launch(Dispatchers.IO) {
+    //-------------------------------
+    //----- DATABASE FUNCTIONS -----
+    //-------------------------------
+    //adding an item
+    fun addItem (shoppingItem: ShoppingItem) {
+        viewModelScope.launch (Dispatchers.IO) {
             shoppingRepository.addItem(shoppingItem)
         }
     }
 
-    fun updateItem(shoppingItem: ShoppingItem){
-        viewModelScope.launch {
+    //updating an item
+    fun updateItem (shoppingItem: ShoppingItem){
+        viewModelScope.launch (Dispatchers.IO) {
             shoppingRepository.updateItem(shoppingItem)
         }
     }
 
-    fun deleteItem(shoppingItem: ShoppingItem){
-        viewModelScope.launch {
+    //deleting an item
+    fun deleteItem (shoppingItem: ShoppingItem) {
+        viewModelScope.launch (Dispatchers.IO) {
             shoppingRepository.deleteItem(shoppingItem)
         }
     }
 
-    val getAllItems: Flow<List<ShoppingItem>> = shoppingRepository.getAllItems()
+    //get all the items
+    val getAllItems : Flow<List<ShoppingItem>> = shoppingRepository.getAllItems()
 
-    fun getItemById(id:Long): Flow<ShoppingItem>{
+    //get item by id
+    fun getItemById (id : Long) : Flow<ShoppingItem> {
         return shoppingRepository.getItemById(id)
     }
+
+    //-------------------------------
+    //-------- UI FUNCTIONS --------
+    //-------------------------------
+
+    //updating name field
+    fun onNameChange(newName: String) {
+        shoppingItemName = newName.take(25)
+    }
+
+    //updating quantity field
+    fun onQuantityChange(input: String) {
+        if (input.isEmpty()) {
+            shoppingItemQuantity = 0
+            return
+        }
+
+        val number = input.toIntOrNull() ?: return
+
+        if (number in 0..999) {
+            shoppingItemQuantity = number
+        }
+    }
+
+    //quantity increment button
+    fun incrementQuantity() {
+        if (shoppingItemQuantity < 999) {
+            shoppingItemQuantity++
+        }
+    }
+
+    //quantity decrement button
+    fun decrementQuantity() {
+        if (shoppingItemQuantity > 0) {
+            shoppingItemQuantity--
+        }
+    }
+
+    //updating item quantity unit
+    fun onUnitSelected(unit: String) {
+        shoppingItemUnit = unit
+    }
+
 }

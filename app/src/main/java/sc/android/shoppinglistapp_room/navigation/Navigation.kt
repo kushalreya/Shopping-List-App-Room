@@ -22,7 +22,6 @@ import sc.android.shoppinglistapp_room.view.HomeScreen
 import sc.android.shoppinglistapp_room.view.LocationSelector
 import sc.android.shoppinglistapp_room.viewmodel.LocationViewModel
 import sc.android.shoppinglistapp_room.viewmodel.ShoppingViewModel
-import java.util.Map.entry
 
 @Composable
 fun Navigation (
@@ -30,55 +29,54 @@ fun Navigation (
     themeMode : ThemeMode,
     isDark : Boolean,
     onThemeChange : (ThemeMode) -> Unit,
+    shoppingViewModel: ShoppingViewModel,
     locationViewModel: LocationViewModel,
     navController : NavHostController,
     context : Context,
-    locationUtil: LocationUtil,
-    shoppingViewModel: ShoppingViewModel
+    locationUtil: LocationUtil
 ) {
     NavHost(
         navController = navController,
-        startDestination = Screens.HomeScreen.route+"/0"
+        startDestination = Screens.HomeScreen.route
     ){
 
         //home screen
-        composable(
-            route = Screens.HomeScreen.route+"/{id}",
-            arguments=listOf(
-            navArgument("id"){
-                type= NavType.LongType
-                defaultValue=0L
-                nullable=false
-            }
-        ) ){
+        composable(route = Screens.HomeScreen.route){
             HomeScreen(
                 themeMode = themeMode,
                 isDark = isDark,
                 onThemeChange = onThemeChange,
                 navController = navController,
+                shoppingViewModel = shoppingViewModel,
                 locationViewModel = locationViewModel,
-                locationUtil = locationUtil,
-                shoppingViewModel = shoppingViewModel
+                locationUtil = locationUtil
             )
         }
 
         //add-edit screen
-        composable( route = Screens.AddEditScreen.route ){
-            entry->
-            val id=entry.arguments?.getLong("id")?:0L
+        composable(
+            route = Screens.AddEditScreen.route + "/{id}",
+            arguments = listOf(
+                navArgument("id"){
+                    type = NavType.LongType
+                    defaultValue = 0L
+                    nullable = false
+                }
+            )
+        ){
+                entry ->
+
+            val id = entry.arguments?.getLong("id") ?: 0L
+
             AddEditScreen(
-                id = 0L,
+                id = id,
                 isDark = isDark,
                 themeMode = themeMode,
                 onThemeChange = onThemeChange,
                 locationUtil = locationUtil,
+                shoppingViewModel = shoppingViewModel,
                 locationViewModel = locationViewModel,
-                navController = navController,
-                onValueChange = {},
-                onDecrease = {},
-                onIncrease = {},
-                onUnitSelect = {},
-                shoppingViewModel = shoppingViewModel
+                navController = navController
             )
         }
 
@@ -107,7 +105,7 @@ fun Navigation (
                     },
                     navController = navController,
                     locationViewModel = locationViewModel,
-                    locationUtil=locationUtil
+                    locationUtil = locationUtil
                 )
             } else {
                 //map loading

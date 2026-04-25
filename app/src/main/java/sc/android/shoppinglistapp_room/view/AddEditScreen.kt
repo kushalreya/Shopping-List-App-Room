@@ -1,13 +1,14 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package sc.android.shoppinglistapp_room.view
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.RemoveCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -15,45 +16,79 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import sc.android.shoppinglistapp_room.R
+import sc.android.shoppinglistapp_room.model.ShoppingItem
 import sc.android.shoppinglistapp_room.ui.theme.ShoppingListApp_RoomTheme
 import sc.android.shoppinglistapp_room.ui.theme.ThemeMode
 import sc.android.shoppinglistapp_room.util.LocationUtil
 import sc.android.shoppinglistapp_room.viewmodel.LocationViewModel
 import sc.android.shoppinglistapp_room.viewmodel.ShoppingViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEditScreen(
     id: Long,
     isDark : Boolean,
     themeMode: ThemeMode,
     onThemeChange : (ThemeMode) -> Unit,
-    navController: NavHostController,
-    onValueChange : () -> Unit,
-    onDecrease : () -> Unit,
-    onIncrease : () -> Unit,
-    onUnitSelect : () -> Unit,
-    locationUtil: LocationUtil,
+    shoppingViewModel: ShoppingViewModel,
     locationViewModel: LocationViewModel,
-    shoppingViewModel: ShoppingViewModel
+    locationUtil: LocationUtil,
+    navController: NavHostController
 ) {
 
     val snackBarHostState = remember { SnackbarHostState() }
 
+    val scope = rememberCoroutineScope()
+
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
 
+    val haptic = LocalHapticFeedback.current
+
     var menuExpanded by remember { mutableStateOf(false) }
+
+    var quantityText by remember {
+        mutableStateOf(shoppingViewModel.shoppingItemQuantity.toString())
+    }
+
+    val validInput by remember {
+        derivedStateOf {
+            shoppingViewModel.shoppingItemName.isNotEmpty() &&
+                    shoppingViewModel.shoppingItemQuantity > 0 &&
+                    shoppingViewModel.shoppingItemUnit.isNotEmpty()
+        }
+    }
+
+    val itemNameLimit = 25
+
+    //configuring what to show once inside add-edit screen
+    LaunchedEffect(id) {
+        if (id != 0L) {
+            val item = shoppingViewModel.getItemById(id).first()
+
+            shoppingViewModel.shoppingItemName = item.name
+            shoppingViewModel.shoppingItemQuantity = item.quantity
+            shoppingViewModel.shoppingItemUnit = item.unit
+            quantityText = item.quantity.toString()
+        } else {
+            shoppingViewModel.shoppingItemName = ""
+            shoppingViewModel.shoppingItemQuantity = 0
+            shoppingViewModel.shoppingItemUnit = ""
+            quantityText = ""
+        }
+    }
 
     ShoppingListApp_RoomTheme(darkTheme = isDark) {
 
@@ -67,10 +102,10 @@ fun AddEditScreen(
                     },
                     themeMode = themeMode,
                     onThemeChange = onThemeChange,
-                    locationUtil = locationUtil,
                     locationViewModel = locationViewModel,
+                    locationUtil = locationUtil,
                     navController = navController,
-                    onBackNavClicked = {navController.navigateUp()}
+                    onBackNavClicked = { navController.navigateUp() }
                 )
             },
             snackbarHost = { SwipeableSnackBar(snackBarHostState) }
@@ -80,8 +115,8 @@ fun AddEditScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(it)
-                    .padding(top = 32.dp)
-                    .clickable{ focusManager.clearFocus() },
+                    .padding(top = 33.dp)
+                    .clickable { focusManager.clearFocus() },
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
@@ -90,14 +125,22 @@ fun AddEditScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp),
-                    //TODO add name
-                    value = "",
-                    onValueChange = { onValueChange() },
+                    value = shoppingViewModel.shoppingItemName,
+                    onValueChange = { shoppingViewModel.onNameChange(it) },
                     label = {
                         Text(
                             "Item Name",
                             fontWeight = FontWeight.Bold,
                             style = MaterialTheme.typography.titleSmall
+                        )
+                    },
+                    supportingText = {
+                        Text(
+                            text = "${shoppingViewModel.shoppingItemName.length}/$itemNameLimit",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            textAlign = TextAlign.End,
+                            modifier = Modifier.fillMaxWidth()
                         )
                     },
                     shape = RoundedCornerShape(16.dp),
@@ -112,7 +155,8 @@ fun AddEditScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 32.dp),
+                        .padding(horizontal = 24.dp)
+                        .padding(end = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
@@ -137,7 +181,12 @@ fun AddEditScreen(
 
                                 //decrease icon button
                                 IconButton(
-                                    onClick = { onDecrease() }
+                                    onClick = {
+                                        shoppingViewModel.decrementQuantity()
+                                        quantityText = shoppingViewModel.shoppingItemQuantity.toString()
+
+                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                    }
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.RemoveCircle,
@@ -150,10 +199,19 @@ fun AddEditScreen(
                                 //quantity
                                 OutlinedTextField(
                                     modifier = Modifier
-                                        .width(55.dp),
-                                    //TODO add quantity.toString()
-                                    value = "",
-                                    onValueChange = { onValueChange() },
+                                        .width(70.dp),
+                                    value = quantityText,
+                                    onValueChange = {
+                                            input ->
+                                        // allow only digits and max 3 chars
+                                        val filtered = input.filter { it.isDigit() }.take(3)
+                                        quantityText = filtered
+                                        shoppingViewModel.onQuantityChange(filtered)
+                                    },
+                                    textStyle = LocalTextStyle.current.copy(
+                                        textAlign = TextAlign.Center
+                                    ),
+                                    singleLine = true,
                                     shape = RoundedCornerShape(16.dp),
                                     keyboardOptions = KeyboardOptions(
                                         keyboardType = KeyboardType.Number
@@ -162,7 +220,12 @@ fun AddEditScreen(
 
                                 //increase icon button
                                 IconButton(
-                                    onClick = { onIncrease() }
+                                    onClick = {
+                                        shoppingViewModel.incrementQuantity()
+                                        quantityText = shoppingViewModel.shoppingItemQuantity.toString()
+
+                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                    }
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.AddCircle,
@@ -200,7 +263,7 @@ fun AddEditScreen(
                                 onExpandedChange = { menuExpanded = !menuExpanded }
                             ) {
                                 TextField(
-                                    value = "select",
+                                    value = shoppingViewModel.shoppingItemUnit.ifEmpty { "select" },
                                     onValueChange = {},
                                     readOnly = true,
                                     modifier = Modifier
@@ -213,8 +276,8 @@ fun AddEditScreen(
                                     colors = ExposedDropdownMenuDefaults.textFieldColors(
                                         focusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                                         unfocusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                                        focusedTextColor = MaterialTheme.colorScheme.onPrimary,
-                                        unfocusedTextColor = MaterialTheme.colorScheme.onPrimary,
+                                        focusedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        unfocusedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
                                         focusedIndicatorColor = Color.Transparent,
                                         unfocusedIndicatorColor = Color.Transparent
                                     ),
@@ -232,15 +295,29 @@ fun AddEditScreen(
                                     units.forEach { unit ->
                                         DropdownMenuItem(
                                             text = {
-                                                Text(
-                                                    text = unit,
-                                                    style = MaterialTheme.typography.bodyLarge,
-                                                    fontWeight = FontWeight.Bold
-                                                )
+                                                Box(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .clip(RoundedCornerShape(10.dp))
+                                                        .background(
+                                                            if (unit == shoppingViewModel.shoppingItemUnit)
+                                                                MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                                                            else Color.Transparent
+                                                        )
+                                                        .padding(vertical = 8.dp, horizontal = 16.dp)
+                                                ) {
+                                                    Text(
+                                                        text = unit,
+                                                        style = MaterialTheme.typography.bodyLarge,
+                                                        fontWeight = FontWeight.Bold
+                                                    )
+                                                }
                                             },
-
                                             onClick = {
-                                                //TODO set unit
+                                                shoppingViewModel.onUnitSelected(unit)
+                                                menuExpanded = false
+
+                                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                             },
                                             colors = MenuDefaults.itemColors(
                                                 textColor = if (unit == shoppingViewModel.shoppingItemUnit)
@@ -252,7 +329,6 @@ fun AddEditScreen(
                                     }
                                 }
                             }
-
                         }
                     }
                 }
@@ -266,13 +342,65 @@ fun AddEditScreen(
                         .padding(horizontal = 24.dp)
                         .height(50.dp),
                     onClick = {
-                        //TODO set snackbar, add or update item
+
+                        val quantity = shoppingViewModel.shoppingItemQuantity
+
+                        if (shoppingViewModel.shoppingItemName.isNotEmpty()
+                            && quantity > 0
+                            && shoppingViewModel.shoppingItemUnit.isNotEmpty()){
+
+                            if (id != 0L){
+                                //update item
+                                shoppingViewModel.updateItem(
+                                    ShoppingItem(
+                                        id = id,
+                                        name = shoppingViewModel.shoppingItemName.trim(),
+                                        quantity = quantity,
+                                        unit = shoppingViewModel.shoppingItemUnit
+                                    )
+                                )
+
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+
+                                scope.launch {
+                                    snackBarHostState.showSnackbar(
+                                        message = "\"${shoppingViewModel.shoppingItemName}\" has been updated",
+                                        duration = SnackbarDuration.Short
+                                    )
+                                    navController.navigateUp()
+                                }
+
+                            } else {
+                                //add item
+                                shoppingViewModel.addItem(
+                                    ShoppingItem(
+                                        name = shoppingViewModel.shoppingItemName.trim(),
+                                        quantity = quantity,
+                                        unit = shoppingViewModel.shoppingItemUnit
+                                    )
+                                )
+
+                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+
+                                scope.launch {
+                                    snackBarHostState.showSnackbar(
+                                        message = "${shoppingViewModel.shoppingItemName} has been added to the list",
+                                        duration = SnackbarDuration.Short
+                                    )
+                                    navController.navigateUp()
+                                }
+                            }
+                        } else {
+                            haptic.performHapticFeedback(HapticFeedbackType.Reject) // subtle error feedback
+                            scope.launch {
+                                snackBarHostState.showSnackbar("Please fill all the fields to proceed!")
+                            }
+                        }
 
                         focusManager.clearFocus()   //clears focus from textbox
                         keyboardController?.hide()  //hides keyboard
                     },
-                    //TODO enable if name, quantity and unit is not empty
-                    enabled = true,
+                    enabled = validInput,
                     colors = ButtonDefaults.buttonColors(
                         disabledContainerColor = if (isDark) Color.Gray else Color.LightGray,
                         disabledContentColor = if (isDark) MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
