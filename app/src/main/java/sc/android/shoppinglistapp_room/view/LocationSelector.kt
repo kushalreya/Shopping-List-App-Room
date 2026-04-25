@@ -333,32 +333,19 @@ fun LocationSelector(
 
                                     IconButton(
                                         onClick = {
+                                            val origin = userLocation.value
+                                            val destination = place.geometry.location
 
-                                            val lat = place.geometry.location.lat
-                                            val lng = place.geometry.location.lng
-
-                                            //Try Google Maps navigation ( the best UX)
-                                            val gmmIntentUri = "google.navigation:q=$lat,$lng&mode=d".toUri()
-
-                                            val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri).apply {
-                                                setPackage("com.google.android.apps.maps")
-                                            }
+                                            val uri = ("https://www.google.com/maps/dir/?api=1" +
+                                                    "&origin=${origin.latitude},${origin.longitude}" +
+                                                    "&destination=${destination.lat},${destination.lng}" +
+                                                    "&travelmode=driving")
+                                                .toUri()
 
                                             try {
-                                                context.startActivity(mapIntent)
-
+                                                context.startActivity(Intent(Intent.ACTION_VIEW, uri))
                                             } catch (e: Exception) {
-
-                                                //Fallback: works on ALL devices (browser + maps apps)
-                                                val webUri = "https://www.google.com/maps/dir/?api=1&destination=$lat,$lng&travelmode=driving".toUri()
-
-                                                val webIntent = Intent(Intent.ACTION_VIEW, webUri)
-
-                                                try {
-                                                    context.startActivity(webIntent)
-                                                } catch (e: Exception) {
-                                                    Toast.makeText(context, "No maps app found", Toast.LENGTH_SHORT).show()
-                                                }
+                                                Toast.makeText(context, "No maps app found", Toast.LENGTH_SHORT).show()
                                             }
                                         }
                                     ) {
