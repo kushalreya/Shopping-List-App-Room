@@ -408,7 +408,7 @@ fun ShoppingItemView (
                         text = item.name
                     )
                 }
-
+                Spacer(Modifier.width(4.dp))
                 Row(
                     modifier = Modifier.weight(1f),
                     verticalAlignment = Alignment.CenterVertically,
