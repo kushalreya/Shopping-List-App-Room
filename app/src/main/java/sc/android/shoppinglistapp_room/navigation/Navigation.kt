@@ -1,6 +1,10 @@
 package sc.android.shoppinglistapp_room.navigation
 
 import android.content.Context
+import androidx.compose.animation.*
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
@@ -23,6 +27,7 @@ import sc.android.shoppinglistapp_room.view.LocationSelector
 import sc.android.shoppinglistapp_room.viewmodel.LocationViewModel
 import sc.android.shoppinglistapp_room.viewmodel.ShoppingViewModel
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun Navigation (
     modifier : Modifier,
@@ -35,12 +40,57 @@ fun Navigation (
     context : Context,
     locationUtil: LocationUtil
 ) {
+
     NavHost(
         navController = navController,
-        startDestination = Screens.HomeScreen.route
+        startDestination = Screens.HomeScreen.route,
+
+        // Default → Fade Through (Material)
+        enterTransition = {
+            fadeIn(
+                animationSpec = tween(
+                    durationMillis = 300,
+                    delayMillis = 90
+                )
+            ) + scaleIn(
+                initialScale = 0.92f,
+                animationSpec = tween(
+                    durationMillis = 300,
+                    delayMillis = 90,
+                    easing = FastOutSlowInEasing
+                )
+            )
+        },
+        exitTransition = {
+            fadeOut(
+                animationSpec = tween(
+                    durationMillis = 90
+                )
+            )
+        },
+        popEnterTransition = {
+            fadeIn(
+                animationSpec = tween(
+                    durationMillis = 300,
+                    delayMillis = 90
+                )
+            ) + scaleIn(
+                initialScale = 0.92f,
+                animationSpec = tween(
+                    durationMillis = 300,
+                    delayMillis = 90,
+                    easing = FastOutSlowInEasing
+                )
+            )
+        },
+        popExitTransition = {
+            fadeOut(
+                animationSpec = tween(90)
+            )
+        }
     ){
 
-        //home screen
+        // Home Screen
         composable(route = Screens.HomeScreen.route){
             HomeScreen(
                 themeMode = themeMode,
@@ -53,18 +103,54 @@ fun Navigation (
             )
         }
 
-        //add-edit screen
+        // Add/Edit Screen → Shared Axis (X)
         composable(
             route = Screens.AddEditScreen.route + "/{id}",
             arguments = listOf(
                 navArgument("id"){
                     type = NavType.LongType
                     defaultValue = 0L
-                    nullable = false
                 }
-            )
-        ){
-                entry ->
+            ),
+
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(
+                        300,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeIn(tween(300))
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { -it },
+                    animationSpec = tween(
+                        300,
+                        easing = LinearOutSlowInEasing
+                    )
+                ) + fadeOut(tween(300))
+            },
+            popEnterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { -it },
+                    animationSpec = tween(
+                        300,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeIn(tween(300))
+            },
+            popExitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { it },
+                    animationSpec = tween(
+                        300,
+                        easing = LinearOutSlowInEasing
+                    )
+                ) + fadeOut(tween(300))
+            }
+
+        ){ entry ->
 
             val id = entry.arguments?.getLong("id") ?: 0L
 
@@ -80,10 +166,49 @@ fun Navigation (
             )
         }
 
-        //location selection dialog
-        composable( route = Screens.LocationSelector.route ){
+        // Location Selector → Bottom Sheet Motion
+        composable(
+            route = Screens.LocationSelector.route,
 
-            //starts with the last selected location, if not available, starts with the current live location
+            enterTransition = {
+                slideInVertically(
+                    initialOffsetY = { it },
+                    animationSpec = tween(
+                        600,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeIn(tween(300))
+            },
+            exitTransition = {
+                slideOutVertically(
+                    targetOffsetY = { it },
+                    animationSpec = tween(
+                        300,
+                        easing = LinearOutSlowInEasing
+                    )
+                ) + fadeOut(tween(200))
+            },
+            popEnterTransition = {
+                slideInVertically(
+                    initialOffsetY = { it },
+                    animationSpec = tween(
+                        400,
+                        easing = FastOutSlowInEasing
+                    )
+                )
+            },
+            popExitTransition = {
+                slideOutVertically(
+                    targetOffsetY = { it },
+                    animationSpec = tween(
+                        300,
+                        easing = LinearOutSlowInEasing
+                    )
+                )
+            }
+
+        ){
+
             val startLocation = locationViewModel.lastSavedLocation.value
                     ?: locationViewModel.location.value
 
@@ -91,16 +216,14 @@ fun Navigation (
                 LocationSelector(
                     isDark = isDark,
                     location = startLocation,
-                    onLocationSelected = {
-                            locationData ->
+                    onLocationSelected = { locationData ->
 
-                        //saving the current location
                         locationViewModel.saveManualLocation(locationData)
 
-                        //fetching the formatted address for the current location
-                        locationViewModel.fetchAddress("${locationData.latitude}, ${locationData.longitude}")
+                        locationViewModel.fetchAddress(
+                            "${locationData.latitude}, ${locationData.longitude}"
+                        )
 
-                        //goes back to the home screen
                         navController.navigateUp()
                     },
                     navController = navController,
@@ -108,10 +231,8 @@ fun Navigation (
                     locationUtil = locationUtil
                 )
             } else {
-                //map loading
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize(),
+                    modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ){
                     CircularProgressIndicator(
