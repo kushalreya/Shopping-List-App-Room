@@ -122,43 +122,43 @@ https://youtu.be/4nP43BVoWcs
 > Demo Clips
 
 <p>
-Current location fetching
+<b>Current location fetching</b>
 
 https://github.com/user-attachments/assets/0e72c3e6-ae51-4e4d-a3a5-2c80637bb0dd
 
-Light and dark theme map with Google Map navigation
+<b>Light and dark theme map with Google Map navigation</b>
 
 https://github.com/user-attachments/assets/11b91490-1a28-4e76-9b13-3d446d184a6f
 
-Navigation from different location to nearby shop
+<b>Navigation from different location to nearby shop</b>
 
 https://github.com/user-attachments/assets/1910a207-2ae7-489b-8ab8-2d1b9e84edb1
 
-Nearby shop changes according to user's current location
+<b>Nearby shop changes according to user's current location</b>
 
 https://github.com/user-attachments/assets/83341bdd-5922-4e97-b804-45b65a3dcecf
 
-Theme toggle
+<b>Theme toggle</b>
 
 https://github.com/user-attachments/assets/4c124fac-ff0b-4571-a004-bb86cfd45837
 
-Item adding
+<b>Item adding</b>
 
 https://github.com/user-attachments/assets/1909d5cf-de44-4a95-9031-5e9c51e28cc5
 
-Item update
+<b>Item update</b>
 
 https://github.com/user-attachments/assets/f0cc639d-d647-4041-a46c-46ab432ce5c6
 
-Item delete
+<b>Item delete</b>
 
 https://github.com/user-attachments/assets/4dab09e9-b9b9-4da9-b7e2-61c742d765a5
 
-Smooth Scroll
+<b>Smooth Scroll</b>
 
 https://github.com/user-attachments/assets/a4fd13be-603d-481a-a072-94483c4849b3
 
-Sorting in checked unchecked items
+<b>Sorting in checked unchecked items</b>
 
 https://github.com/user-attachments/assets/3a4c8ac9-e49b-42a6-8571-a9f8884a4b22
 
