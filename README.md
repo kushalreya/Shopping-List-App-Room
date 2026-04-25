@@ -25,6 +25,11 @@ By combining a **shopping list manager + location-based store finder**, NearCart
 - 📡 Pagination support for nearby places API
 - 📶 Works offline for saved shopping list (Room DB)
 
+  ### 💡 Smart UX Highlight
+
+- ✅ Automatically sorts completed (checked) items to the bottom  
+  → Keeps your active shopping items always on top  
+
 ---
 
 ## 🛠 Tech Stack
